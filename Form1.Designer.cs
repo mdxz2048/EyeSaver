@@ -19,7 +19,7 @@
             }
             base.Dispose(disposing);
         }
-
+        // test for git
         #region Windows 窗体设计器生成的代码
 
         /// <summary>
