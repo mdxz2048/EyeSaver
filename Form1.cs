@@ -15,13 +15,14 @@ namespace EyeSaver
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayMenu = new ContextMenuStrip();
         private MenuManager menuManager;
-
+        private EyeSaveScreen eyeSaveScreen; // EyeSaveScreen 实例
 
         public Form1()
         {
             InitializeComponent();
             InitializeTrayIcon();
             this.FormClosing += Form1_FormClosing;
+            eyeSaveScreen = new EyeSaveScreen(menuManager.configManger.AppConfig);
 
         }
 
@@ -39,7 +40,7 @@ namespace EyeSaver
             trayIcon = new NotifyIcon(this.components)
             {
                 ContextMenuStrip = trayMenu,
-                Icon = SystemIcons.Application, // Use a temporary default icon
+                Icon = Properties.Resources.NotifyIconTrayIcon,
                 Visible = true
             };
 

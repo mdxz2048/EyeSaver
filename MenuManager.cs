@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using IWshRuntimeLibrary;
 
 namespace EyeSaver
 {
@@ -12,7 +14,7 @@ namespace EyeSaver
     {
         private ContextMenuStrip trayMenu;
         private Config appConfig;
-        ConfigManager configManger;
+        public ConfigManager configManger;
 
         // 菜单项作为类的成员变量
         private ToolStripMenuItem enableFeatureItem;
@@ -24,6 +26,7 @@ namespace EyeSaver
         private ToolStripMenuItem helpItem;
         private ToolStripMenuItem aboutItem;
         private ToolStripMenuItem exitItem;
+        private ToolStripMenuItem autoStartItem;
 
 
         public MenuManager(ContextMenuStrip menu)
@@ -39,6 +42,10 @@ namespace EyeSaver
 
         private void CreateContextMenu()
         {
+
+            // 开机自启动菜单项
+            autoStartItem = new ToolStripMenuItem("开机自启动");
+
             // EyeSaver settings menu
             eyeSaverSettingsItem = new ToolStripMenuItem("护眼提醒设置");
             enableFeatureItem = new ToolStripMenuItem("开启功能");
@@ -54,7 +61,7 @@ namespace EyeSaver
             reminderIntervalItem = new ToolStripMenuItem("提醒周期(分钟)");
 
             // 添加几个固定的周期选项
-            var intervals = new[] { 20, 30, 40, 60 };
+            var intervals = new[] { 1, 20, 30, 40, 60 };
             foreach (var interval in intervals)
             {
                 var intervalItem = new ToolStripMenuItem(interval.ToString());
@@ -62,14 +69,7 @@ namespace EyeSaver
                 reminderIntervalItem.DropDownItems.Add(intervalItem);
             }
 
-            // 添加一个自定义周期选项
-            var customIntervalItem = new ToolStripTextBox()
-            {
-                Text = appConfig.EyeSaverConfig.ReminderIntervalMinutes.ToString(),
-                ToolTipText = "输入自定义提醒周期（分钟）"
-            };
-            customIntervalItem.KeyPress += CustomIntervalItem_KeyPress;
-            reminderIntervalItem.DropDownItems.Add(customIntervalItem);
+       
 
             eyeSaverSettingsItem.DropDownItems.Add(enableFeatureItem);
             eyeSaverSettingsItem.DropDownItems.Add(reminderIntervalItem);
@@ -87,6 +87,7 @@ namespace EyeSaver
             exitItem = new ToolStripMenuItem("退出");
 
             // Add items to the main context menu
+            trayMenu.Items.Add(autoStartItem);
             trayMenu.Items.Add(eyeSaverSettingsItem);
             trayMenu.Items.Add(helpItem);
             trayMenu.Items.Add(aboutItem);
@@ -96,6 +97,7 @@ namespace EyeSaver
             UpdateContextMenu(appConfig);
 
             // 为菜单项添加事件处理器
+            autoStartItem.Click += AutoStartItem_Click; // 添加事件处理器
             enableFeatureItem.Click += (sender, e) => ToggleFeature(enableFeatureItem);
             screenDimItem.Click += (sender, e) => ChangeReminderMethod(ReminderMethod.ScreenDim);
             popupReminderItem.Click += (sender, e) => ChangeReminderMethod(ReminderMethod.PopupReminder);
@@ -103,12 +105,83 @@ namespace EyeSaver
 
         }
 
+        private void AutoStartItem_Click(object sender, EventArgs e)
+        {
+            // 切换开机自启动的配置
+            appConfig.AutoStartAtBootIsEnable = !appConfig.AutoStartAtBootIsEnable;
+            ((ToolStripMenuItem)sender).Checked = appConfig.AutoStartAtBootIsEnable; // 更新菜单项的选中状态
+
+            // 实现开机自启动的逻辑
+            ToggleAutoStartAtBoot(appConfig.AutoStartAtBootIsEnable);
+
+            // 保存配置更改
+            configManger.SaveConfig();
+        }
+
+        private void ToggleAutoStartAtBoot(bool enable)
+        {
+            // 获取启动文件夹路径
+            string startupFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+            // 快捷方式的完整路径
+            string shortcutPath = Path.Combine(startupFolderPath, "EyeSaver.lnk");
+
+            if (enable)
+            {
+                if (!System.IO.File.Exists(shortcutPath))
+                {
+                    // 创建快捷方式
+                    WshShell shell = new WshShell();
+                    IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
+                    shortcut.TargetPath = Application.ExecutablePath; // 快捷方式指向的路径
+                    shortcut.WorkingDirectory = Application.StartupPath; // 快捷方式的启动路径
+                    shortcut.Description = "EyeSaver Application"; // 快捷方式的描述
+                    shortcut.IconLocation = Application.ExecutablePath; // 快捷方式的图标路径
+                    shortcut.Save(); // 保存快捷方式
+                    MessageBox.Show("新增开机自启动快捷方式到" + Application.ExecutablePath);
+                }
+            }
+            else
+            {
+                // 删除快捷方式
+                if (System.IO.File.Exists(shortcutPath))
+                {
+                    System.IO.File.Delete(shortcutPath);
+                    MessageBox.Show("从"+ shortcutPath + "删除开机自启动快捷方式");
+                }
+            }
+        }
+
+
+
         // 更新上下文菜单状态
         private void UpdateContextMenu(Config config)
         {
             enableFeatureItem.Checked = config.EyeSaverConfig.IsEnable;
             screenDimItem.Checked = config.EyeSaverConfig.ReminderMethod == ReminderMethod.ScreenDim;
             popupReminderItem.Checked = config.EyeSaverConfig.ReminderMethod == ReminderMethod.PopupReminder;
+
+            // 将所有提醒周期项的Checked属性设置为false
+            foreach (ToolStripItem item in reminderIntervalItem.DropDownItems)
+            {
+                if (item is ToolStripMenuItem menuItem)
+                {
+                    menuItem.Checked = false; // 先全部设为未选中
+                }
+            }
+
+            // 根据appConfig设置正确的选中状态
+            foreach (ToolStripItem item in reminderIntervalItem.DropDownItems)
+            {
+                if (item is ToolStripMenuItem menuItem && int.TryParse(menuItem.Text, out int interval))
+                {
+                    // 检查menuItem的Text是否与appConfig中的值匹配
+                    if (interval == config.EyeSaverConfig.ReminderIntervalMinutes)
+                    {
+                        menuItem.Checked = true;
+                        break; // 找到匹配项后跳出循环
+                    }
+                }
+            }
             // ... 更新其他菜单项的状态 ...
         }
 
