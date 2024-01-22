@@ -133,23 +133,24 @@ namespace EyeSaver
                     WshShell shell = new WshShell();
                     IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutPath);
                     shortcut.TargetPath = Application.ExecutablePath; // 快捷方式指向的路径
-                    shortcut.WorkingDirectory = Application.StartupPath; // 快捷方式的启动路径
+                    shortcut.WorkingDirectory = Path.GetDirectoryName(Application.ExecutablePath); // 快捷方式的工作目录
                     shortcut.Description = "EyeSaver Application"; // 快捷方式的描述
                     shortcut.IconLocation = Application.ExecutablePath; // 快捷方式的图标路径
                     shortcut.Save(); // 保存快捷方式
-                    MessageBox.Show("新增开机自启动快捷方式到" + Application.ExecutablePath);
+                    MessageBox.Show("已将快捷方式添加到启动文件夹: " + shortcutPath);
                 }
             }
             else
             {
-                // 删除快捷方式
                 if (System.IO.File.Exists(shortcutPath))
                 {
+                    // 删除快捷方式
                     System.IO.File.Delete(shortcutPath);
-                    MessageBox.Show("从"+ shortcutPath + "删除开机自启动快捷方式");
+                    MessageBox.Show("已从启动文件夹删除快捷方式: " + shortcutPath);
                 }
             }
         }
+
 
 
 
