@@ -26,6 +26,9 @@ namespace EyeSaver
             InitializeComponent();
             InitializeTrayIcon();
             this.FormClosing += Form1_FormClosing;
+
+            // 注册配置改变事件
+            menuManager.configManger.ConfigChanged += ConfigManger_ConfigChanged;
             eyeSaveScreen = new EyeSaveScreen(menuManager.configManger.AppConfig);
 
         }
@@ -49,7 +52,7 @@ namespace EyeSaver
             };
 
             // 添加退出事件处理
-            trayIcon.DoubleClick += OnTrayIconDoubleClick; // 双击托盘图标的事件处理
+            //trayIcon.DoubleClick += OnTrayIconDoubleClick; // 双击托盘图标的事件处理
         }
 
         private void OnTrayIconDoubleClick(object sender, EventArgs e)
@@ -61,11 +64,22 @@ namespace EyeSaver
         // 事件处理：用户选择退出时
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // 取消注册配置改变事件
+            menuManager.configManger.ConfigChanged -= ConfigManger_ConfigChanged;
+
             // 确保托盘图标在程序退出时被移除
             if (trayIcon != null)
             {
                 trayIcon.Visible = false;
             }
+        }
+
+        private void ConfigManger_ConfigChanged(Config newConfig)
+        {
+            // 配置改变时的操作
+            Debug.WriteLine($"{DateTime.Now} " + "配置发生改变");
+            eyeSaveScreen.Deinitialize(); // 停止当前的定时器和屏幕变暗逻辑
+            eyeSaveScreen.Initialize(newConfig); // 用新的配置重新初始化
         }
 
     }

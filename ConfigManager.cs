@@ -29,11 +29,25 @@ namespace EyeSaver
 
     public class ConfigManager
     {
+        // 定义一个委托和事件
+        public delegate void ConfigChangedHandler(Config newConfig);
+        public event ConfigChangedHandler ConfigChanged;
+
         private string configFilePath = "config.json";
         private Config appConfig = null;
 
-        public Config AppConfig { get { return appConfig; } set {  appConfig = value; } }
-
+        public Config AppConfig
+        {
+            get { return appConfig; }
+            set
+            {
+                if (appConfig != value)
+                {
+                    appConfig = value;
+                    OnConfigChanged(appConfig);
+                }
+            }
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -61,10 +75,17 @@ namespace EyeSaver
                 appConfig = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configFilePath));
             }
         }
+
+        protected virtual void OnConfigChanged(Config newConfig)
+        {
+            // 如果有对象订阅了事件，则通知它们
+            ConfigChanged?.Invoke(newConfig);
+        }
         public void SaveConfig()
         {
             appConfig.UpdateTime = DateTime.Now.ToString("yyyyMMdd HH:mm:ss");
             File.WriteAllText(configFilePath, JsonConvert.SerializeObject(appConfig, Formatting.Indented));
+            OnConfigChanged(appConfig); // 在保存后触发事件
         }
     }
 

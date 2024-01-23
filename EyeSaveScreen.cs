@@ -18,14 +18,16 @@ namespace EyeSaver
         public EyeSaveScreen(Config config)
         {
             Initialize(config);
-            SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SystemEvents_SessionSwitch);
-            SystemEvents.PowerModeChanged += SystemEvents_OnPowerModeChanged;
 
 
         }
 
         public void Initialize(Config config)
         {
+
+            SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SystemEvents_SessionSwitch);
+            SystemEvents.PowerModeChanged += SystemEvents_OnPowerModeChanged;
+
             this.config = config;
             // 初始化定时器
             if (reminderTimer != null)
@@ -33,6 +35,7 @@ namespace EyeSaver
                 reminderTimer.Stop();
                 reminderTimer.Dispose();
             }
+
 
             reminderTimer = new Timer();
             reminderTimer.Interval = config.EyeSaverConfig.ReminderIntervalMinutes * 60 * 1000; // 将分钟转换为毫秒
