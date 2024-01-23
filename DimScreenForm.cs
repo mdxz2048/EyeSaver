@@ -34,7 +34,7 @@ namespace EyeSaver
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter,
                 ForeColor = Color.White,
-                Text = "请休息一下眼睛", // 这里设置您想要的文本
+                Text = "那就休息一下吧", // 这里设置您想要的文本
                 Font = new Font("Microsoft Sans Serif", 24F, FontStyle.Regular, GraphicsUnit.Point, 0), // 设置字体大小和样式
                 Visible = false // 开始时不可见
             };
@@ -45,7 +45,7 @@ namespace EyeSaver
             // 设置鼠标和键盘的钩子监听
             globalHook = Hook.GlobalEvents();
             globalHook.KeyDown += GlobalHook_KeyDown;
-            globalHook.MouseMove += GlobalHook_MouseMove;
+           // globalHook.MouseMove += GlobalHook_MouseMove;
 
             // 初始化淡入定时器
             fadeTimer = new Timer();
@@ -106,7 +106,7 @@ namespace EyeSaver
 
         private void StartFadingOut()
         {
-            if (userActivityCount >= 5)
+            if (userActivityCount >= 3)
             {
                 // 用户活动达到5次后，关闭窗体
                 this.Close();

@@ -157,6 +157,7 @@ namespace EyeSaver
         // 更新上下文菜单状态
         private void UpdateContextMenu(Config config)
         {
+            autoStartItem.Checked = config.AutoStartAtBootIsEnable;
             enableFeatureItem.Checked = config.EyeSaverConfig.IsEnable;
             screenDimItem.Checked = config.EyeSaverConfig.ReminderMethod == ReminderMethod.ScreenDim;
             popupReminderItem.Checked = config.EyeSaverConfig.ReminderMethod == ReminderMethod.PopupReminder;

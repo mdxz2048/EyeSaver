@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,11 @@ namespace EyeSaver
         private MenuManager menuManager;
         private EyeSaveScreen eyeSaveScreen; // EyeSaveScreen 实例
 
+
+
         public Form1()
         {
+            Debug.WriteLine($"{DateTime.Now} " +"开始运行");
             InitializeComponent();
             InitializeTrayIcon();
             this.FormClosing += Form1_FormClosing;

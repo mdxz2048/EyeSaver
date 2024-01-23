@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
+using System.Diagnostics;
 
 namespace EyeSaver
 {
@@ -16,6 +18,10 @@ namespace EyeSaver
         public EyeSaveScreen(Config config)
         {
             Initialize(config);
+            SystemEvents.SessionSwitch += new SessionSwitchEventHandler(SystemEvents_SessionSwitch);
+            SystemEvents.PowerModeChanged += SystemEvents_OnPowerModeChanged;
+
+
         }
 
         public void Initialize(Config config)
@@ -34,6 +40,40 @@ namespace EyeSaver
             reminderTimer.Start();
         }
 
+        //会话被锁定，关闭定时器
+        //会话解锁，打开定时器
+        private void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
+        {
+            if (e.Reason == SessionSwitchReason.SessionLock)
+            {
+                // 电脑被锁定，停止计时器
+                reminderTimer.Stop();
+                Debug.WriteLine($"{DateTime.Now} " + "SessionLock事件触发，reminderTimer计时器停止");
+
+            }
+            else if (e.Reason == SessionSwitchReason.SessionUnlock)
+            {
+                // 电脑被解锁，启动计时器
+                reminderTimer.Start();
+                Debug.WriteLine($"{DateTime.Now} " + "SessionUnlock事件触发,reminderTimer计时器停止计时器开始");
+            }
+        }
+        //系统电源模式改变，关闭定时器
+        private void SystemEvents_OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+        {
+            switch (e.Mode)
+            {
+                case PowerModes.Suspend:
+                    // 系统挂起操作，比如休眠或睡眠
+                    reminderTimer.Stop();
+
+                    break;
+                case PowerModes.Resume:
+                    // 系统从挂起状态恢复，比如从休眠或睡眠中唤醒
+                    reminderTimer.Start();
+                    break;
+            }
+        }
         public void Deinitialize()
         {
             if (reminderTimer != null)
@@ -42,6 +82,10 @@ namespace EyeSaver
                 reminderTimer.Dispose();
                 reminderTimer = null;
             }
+            SystemEvents.SessionSwitch -= new SessionSwitchEventHandler(SystemEvents_SessionSwitch);
+            SystemEvents.PowerModeChanged -= SystemEvents_OnPowerModeChanged;
+
+
         }
 
         private void ReminderTimer_Tick(object sender, EventArgs e)
