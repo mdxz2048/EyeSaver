@@ -59,7 +59,7 @@ namespace EyeSaver
                 appConfig = new Config
                 {
                     UpdateTime = DateTime.Now.ToString("yyyyMMdd HH:mm:ss"),
-                    AutoStartAtBootIsEnable = true,
+                    AutoStartAtBootIsEnable = false,
                     EyeSaverConfig = new EyeSaverConfig
                     {
                         IsEnable = true,

@@ -21,6 +21,30 @@ namespace EyeSaver
         private Label lblMessage;
         private SpeechSynthesizer synthesizer;
         private bool fadingOut = false;
+        private Timer autoFadeOutTimer; // 自动淡出定时器
+        private string[] restPrompts = new string[]
+        {
+            // 鲁迅风格
+            "“喧嚣中，片刻的宁静是金。\n那就休息一下吧。”",
+            "“天地间，何处无诗意？让眼睛去寻找。\n那就休息一下吧。”",
+            "“故纸堆中，也许有生命。\n那就休息一下吧。”",
+            "“狂人日记里，记得要休息。\n那就休息一下吧。”",
+            "“呐喊吧，不为别的，为了眼睛的清明。\n那就休息一下吧。”",
+
+            // 余华风格
+            "“活着，就得喘口气。\n那就休息一下吧。”",
+            "“生如夏花，歇如秋叶。\n那就休息一下吧。”",
+            "“看太多，不如闭目思。\n那就休息一下吧。”",
+            "“生活的烟火里，别忘了歇息。\n那就休息一下吧。”",
+            "“当屏幕变成日历，是时候停一停了。\n那就休息一下吧。”",
+
+            // 崔永元风格
+            "“屏幕太小，宇宙太大，别总盯着屏幕。\n那就休息一下吧。”",
+            "“外面的世界很精彩，外面的世界也很无奈。\n那就休息一下吧。”",
+            "“快餐时代，慢活生活。\n那就休息一下吧。”",
+            "“别让键盘上的灰尘，埋没了眼里的星辰。\n那就休息一下吧。”",
+            "“天下没有不散的宴席，也没有不歇的工作。\n那就休息一下吧。”"
+        };
 
         public DimScreenForm()
         {
@@ -34,10 +58,11 @@ namespace EyeSaver
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter,
                 ForeColor = Color.White,
-                Text = "那就休息一下吧", // 这里设置您想要的文本
                 Font = new Font("Microsoft Sans Serif", 24F, FontStyle.Regular, GraphicsUnit.Point, 0), // 设置字体大小和样式
                 Visible = false // 开始时不可见
             };
+            // 设置提示信息为随机的提示语
+            SetRandomRestPrompt();
             this.Controls.Add(lblMessage); // 将 lblMessage 添加到窗体的控件集合中
 
             synthesizer = new SpeechSynthesizer();
@@ -49,9 +74,21 @@ namespace EyeSaver
 
             // 初始化淡入定时器
             fadeTimer = new Timer();
-            fadeTimer.Interval = 50; // 间隔时间可以自己调整
+            fadeTimer.Interval   = 50; //50
             fadeTimer.Tick += new EventHandler(fadeTimer_Tick);
             fadeTimer.Start();
+
+            // 初始化自动淡出定时器
+            autoFadeOutTimer = new Timer();
+            autoFadeOutTimer.Interval = 10000; // 10秒无操作后开始淡出
+            autoFadeOutTimer.Tick += new EventHandler(autoFadeOutTimer_Tick);
+
+        }
+        private void SetRandomRestPrompt()
+        {
+            Random random = new Random();
+            int index = random.Next(restPrompts.Length);
+            lblMessage.Text = restPrompts[index];
         }
 
         private void fadeTimer_Tick(object sender, EventArgs e)
@@ -73,6 +110,7 @@ namespace EyeSaver
                 else
                 {
                     fadeTimer.Stop(); // 达到最大不透明度后停止计时器
+                    autoFadeOutTimer.Start(); // 开始自动淡出计时
                 }
             }
             else
@@ -102,6 +140,16 @@ namespace EyeSaver
         {
             userActivityCount++; // 增加用户活动计数器
             StartFadingOut();
+        }
+
+        private void autoFadeOutTimer_Tick(object sender, EventArgs e)
+        {
+            // 如果当前不处于淡出状态且不透明度仍在最大值，则开始淡出
+            if (!fadingOut && userActivityCount <=0)
+            {
+                StartFadingOut();
+            }
+            autoFadeOutTimer.Stop(); // 不论如何，触发一次后停止计时器
         }
 
         private void StartFadingOut()
