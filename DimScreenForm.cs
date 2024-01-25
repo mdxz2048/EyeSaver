@@ -64,7 +64,6 @@ namespace EyeSaver
             // 设置提示信息为随机的提示语
             SetRandomRestPrompt();
             this.Controls.Add(lblMessage); // 将 lblMessage 添加到窗体的控件集合中
-
             synthesizer = new SpeechSynthesizer();
 
             // 设置鼠标和键盘的钩子监听
@@ -74,7 +73,7 @@ namespace EyeSaver
 
             // 初始化淡入定时器
             fadeTimer = new Timer();
-            fadeTimer.Interval   = 50; //50
+            fadeTimer.Interval   = 50; //50毫秒
             fadeTimer.Tick += new EventHandler(fadeTimer_Tick);
             fadeTimer.Start();
 
@@ -96,35 +95,40 @@ namespace EyeSaver
             if (!fadingOut)
             {
                 // 淡入效果
-                if (currentOpacity < 0.7) // 设置最大不透明度值为0.7
+                if (currentOpacity < 0.7) // 设置最大不透明度值为0.7, 0.01 * 70
                 {
                     currentOpacity += step;
                     this.Opacity = currentOpacity;
                     if (lblMessage.Visible == false)
                     {
                         lblMessage.Visible = true;
-                        synthesizer.SpeakAsync("您需要远眺1分钟"); // 语音提示
+                        //synthesizer.SpeakAsync("您需要远眺1分钟"); // 语音提示
                     }
                     lblMessage.ForeColor = Color.FromArgb((int)(255 * currentOpacity), 255, 255, 255); // 字体颜色淡入
                 }
                 else
                 {
                     fadeTimer.Stop(); // 达到最大不透明度后停止计时器
-                    autoFadeOutTimer.Start(); // 开始自动淡出计时
+                    if(userActivityCount <= 0)
+                    {
+                        autoFadeOutTimer.Start(); // 开始自动淡出计时
+
+                    }
                 }
             }
             else
             {
                 // 淡出效果
-                if (this.Opacity < 0.7f)
+                if (this.Opacity > 0f) // 检查不透明度是否大于0
                 {
-                    this.Opacity += step; // 增加不透明度
-                    lblMessage.ForeColor = Color.FromArgb((int)(255 * this.Opacity), 255, 255, 255); // 字体颜色淡入
+                    this.Opacity -= step; // 减少不透明度
+                    lblMessage.ForeColor = Color.FromArgb((int)(255 * this.Opacity), 255, 255, 255); // 字体颜色随着淡出而变化
                 }
                 else
                 {
-                    fadeTimer.Stop(); // 达到原始不透明度后停止计时器
+                    fadeTimer.Stop(); // 达到完全透明后停止计时器
                     fadingOut = false;
+                    this.Close(); // 可以选择关闭窗体
                 }
             }
         }
@@ -145,7 +149,7 @@ namespace EyeSaver
         private void autoFadeOutTimer_Tick(object sender, EventArgs e)
         {
             // 如果当前不处于淡出状态且不透明度仍在最大值，则开始淡出
-            if (!fadingOut && userActivityCount <=0)
+            if (!fadingOut)
             {
                 StartFadingOut();
             }
@@ -162,11 +166,15 @@ namespace EyeSaver
             else
             {
                 // 根据用户活动计数器设置不透明度
-                currentOpacity = 0.7f - (userActivityCount * 0.14f); // 每次减少大约0.14的不透明度
-                this.Opacity = currentOpacity;
-                lblMessage.ForeColor = Color.FromArgb((int)(255 * currentOpacity), 255, 255, 255);
-                fadingOut = true;
-                fadeTimer.Start();
+                //currentOpacity = 0.7f - (userActivityCount * 0.14f); // 每次减少大约0.14的不透明度
+                //this.Opacity = currentOpacity;
+                //lblMessage.ForeColor = Color.FromArgb((int)(255 * currentOpacity), 255, 255, 255);
+                if(!fadingOut)
+                {
+                    fadingOut = true;
+                    fadeTimer.Start();
+                }
+
             }
         }
 
