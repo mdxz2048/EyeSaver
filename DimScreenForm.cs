@@ -17,6 +17,7 @@ namespace EyeSaver
         private float currentOpacity = 0; // 当前不透明度
         private int userActivityCount = 0; // 用户活动计数器
 
+
         private Label lblMessage;
         private SpeechSynthesizer synthesizer;
         private bool fadingOut = false;
