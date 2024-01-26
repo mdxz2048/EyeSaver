@@ -17,7 +17,6 @@ namespace EyeSaver
         private float currentOpacity = 0; // 当前不透明度
         private int userActivityCount = 0; // 用户活动计数器
 
-
         private Label lblMessage;
         private SpeechSynthesizer synthesizer;
         private bool fadingOut = false;
@@ -30,6 +29,7 @@ namespace EyeSaver
             "“故纸堆中，也许有生命。\n那就休息一下吧。”",
             "“狂人日记里，记得要休息。\n那就休息一下吧。”",
             "“呐喊吧，不为别的，为了眼睛的清明。\n那就休息一下吧。”",
+
 
             // 余华风格
             "“活着，就得喘口气。\n那就休息一下吧。”",
