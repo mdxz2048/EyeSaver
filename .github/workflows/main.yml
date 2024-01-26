@@ -8,20 +8,25 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
         
     - name: Locate MSBuild
       run: |
-        $msbuildPath = Get-Command MSBuild.exe | Select-Object -ExpandProperty Path
+        $msbuildPath = where.exe msbuild
         Write-Host "MSBuild.exe is located at: $msbuildPath"
-
+    
     - name: Restore NuGet packages
-      run: nuget restore EyeSaver.sln
-      
+      run: |
+        $msbuildPath = where.exe msbuild
+        "& $msbuildPath" /t:restore EyeSaver.sln
+
     - name: Build with MSBuild
-      run: msbuild EyeSaver.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+      run: |
+        $msbuildPath = where.exe msbuild
+        "& $msbuildPath" EyeSaver.sln /p:Configuration=Release /p:Platform="Any CPU" /m
     
     - name: Archive Release Artifacts
       run: |
