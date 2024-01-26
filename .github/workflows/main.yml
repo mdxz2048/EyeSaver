@@ -1,0 +1,45 @@
+name: .NET Build and Publish Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '4.7.0' # 根据你的需要调整.NET版本
+
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+
+    - name: Archive Release Artifacts
+      run: |
+        7z a EyeSaver.zip ./bin/Release/* # 根据你的项目输出路径调整此行
+
+    - name: Checkout Releases Repository
+      uses: actions/checkout@v2
+      with:
+        repository: mdxz2048/EyeSaverReleases
+        token: ${{ secrets.GITHUB_TOKEN }}
+        path: releases
+
+    - name: Copy files to the releases repository
+      run: |
+        cp EyeSaver.zip releases/
+
+    - name: Commit and Push to Releases Repository
+      run: |
+        cd releases
+        git config --local user.email "zhipeng2048@gmail.com"
+        git config --local user.name "mdxz2048"
+        git add .
+        git commit -m "Release new version"
+        git push
