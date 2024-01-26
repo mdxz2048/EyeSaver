@@ -11,12 +11,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '4.7.0' # 根据你的需要调整.NET版本
-
     - name: Build with dotnet
       run: dotnet build --configuration Release
 
