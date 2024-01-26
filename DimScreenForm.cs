@@ -46,6 +46,7 @@ namespace EyeSaver
             "“天下没有不散的宴席，也没有不歇的工作。\n那就休息一下吧。”"
         };
 
+
         public DimScreenForm()
         {
             this.BackColor = Color.Black;
